@@ -13,6 +13,9 @@ $(call inherit-product, device/xiaomi/rubyx/device.mk)
 # Inherit some common LineageOS stuff.
 $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 
+# Enable animation override to fix lag on fewer mediatek devices
+PERF_ANIM_OVERRIDE := true
+
 PRODUCT_NAME := lineage_rubyx
 PRODUCT_DEVICE := rubyx
 PRODUCT_MANUFACTURER := Xiaomi
