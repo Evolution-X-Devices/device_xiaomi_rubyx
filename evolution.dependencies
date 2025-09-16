@@ -1,10 +1,12 @@
 [
   {
     "repository": "device_xiaomi_rubyx",
+    "branch": "bka",
     "target_path": "device/xiaomi/rubyx"
   },
   {
     "repository": "device_xiaomi_miuicamera-rubyx",
+    "branch": "lineage-22.2",
     "target_path": "device/xiaomi/miuicamera-rubyx"
   },
   {
@@ -21,6 +23,7 @@
   },
   {
     "repository": "kernel_xiaomi_mt6877",
+    "branch": "bka",
     "target_path": "kernel/xiaomi/mt6877"
   },
   {
@@ -32,7 +35,7 @@
   {
     "repository": "vendor_xiaomi_rubyx",
     "target_path": "vendor/xiaomi/rubyx",
-    "branch": "lineage-23.0"
+    "branch": "bka"
   },
   {
     "repository": "vendor_xiaomi_miuicamera-rubyx",
@@ -41,6 +44,7 @@
   {
     "repository": "Aeron-Aeron/packages_apps_ViPER4AndroidFX",
     "target_path": "packages/apps/ViPER4AndroidFX",
-    "remote": "github-non-los"
+    "remote": "github-non-los",
+    "branch": "main"
   }
 ]
