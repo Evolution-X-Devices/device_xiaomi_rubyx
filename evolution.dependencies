@@ -46,5 +46,11 @@
     "target_path": "packages/apps/ViPER4AndroidFX",
     "remote": "github-non-los",
     "branch": "main"
+  },
+  {
+    "repository": "Aeron-Aeron/android_vendor_mediatek_ims",
+    "target_path": "vendor/mediatek/ims",
+    "remote": "github-non-los",
+    "branch": "android-16"
   }
 ]
