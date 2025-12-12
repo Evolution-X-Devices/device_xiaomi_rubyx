@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: 2023-2024 The LineageOS Project
+# SPDX-FileCopyrightText: 2023-2025 The LineageOS Project
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -16,9 +16,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota.mk)
 
 # Project ID Quota
 $(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
-
-# Inherit ViPER4AndroidFX
-$(call inherit-product, packages/apps/ViPER4AndroidFX/config.mk)
 
 # A/B
 PRODUCT_PACKAGES += \
@@ -67,7 +64,6 @@ PRODUCT_PACKAGES += \
     android.hardware.bluetooth.audio-impl:32
 
 PRODUCT_PACKAGES += \
-    MtkInCallService \
     XiaomiDolby
 
 PRODUCT_PACKAGES += \
@@ -95,6 +91,10 @@ PRODUCT_COPY_FILES += \
 # ConsumerIr
 PRODUCT_PACKAGES += \
     android.hardware.ir-service.example
+
+# DeviceAsWebcam
+PRODUCT_PACKAGES += \
+    DeviceAsWebcam
 
 # Dex
 WITH_DEXPREOPT := true
@@ -181,7 +181,7 @@ PRODUCT_PACKAGES += \
     ueventd.mt6877.rc
 
 PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/init/init.recovery.mt6877.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6877.rc
+    $(DEVICE_PATH)/rootdir/etc/init.recovery.mt6877.rc:$(TARGET_COPY_OUT_RECOVERY)/root/init.recovery.mt6877.rc
 
 # Light
 PRODUCT_PACKAGES += \
@@ -194,7 +194,7 @@ PRODUCT_PACKAGES += \
 $(call soong_config_set,lineage_health,charging_control_charging_path,/sys/class/power_supply/battery/input_suspend)
 $(call soong_config_set,lineage_health,charging_control_charging_enabled,0)
 $(call soong_config_set,lineage_health,charging_control_charging_disabled,1)
-$(call soong_config_set,lineage_health,charging_control_supports_bypass,false)
+$(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
 
 # Linker
 PRODUCT_COPY_FILES += \
@@ -216,6 +216,7 @@ PRODUCT_COPY_FILES += \
 
 # Overlays
 PRODUCT_PACKAGES += \
+    DeviceAsWebcamOverlayRuby \
     FrameworksResOverlayRuby \
     FrameworksResOverlayRubyPlus \
     FrameworksResOverlayRubyProPlus \
@@ -367,7 +368,11 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     android.hardware.usb-service.mediatek \
     android.hardware.usb.gadget-service.mediatek
-    
+
+# Use a profile based boot image for this device
+PRODUCT_USE_PROFILE_FOR_BOOT_IMAGE := true
+PRODUCT_DEX_PREOPT_BOOT_IMAGE_PROFILE_LOCATION := frameworks/base/boot/boot-image-profile.txt
+
 # Vibrator
 $(call soong_config_set, vibrator, vibratortargets, vibratoraidlV2target)
 

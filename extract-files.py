@@ -1,7 +1,7 @@
 #!/usr/bin/env -S PYTHONPATH=../../../tools/extract-utils python3
 #
 # SPDX-FileCopyrightText: 2016 The CyanogenMod Project
-# SPDX-FileCopyrightText: 2017-2024 The LineageOS Project
+# SPDX-FileCopyrightText: 2017-2025 The LineageOS Project
 # SPDX-License-Identifier: Apache-2.0
 #
 
@@ -48,6 +48,9 @@ blob_fixups: blob_fixups_user_type = {
      'vendor/firmware/txpowerctrl_in.cfg',
      'vendor/firmware/txpowerctrl_in_u.cfg'): blob_fixup()
         .regex_replace(r'\t', ''),
+    
+    'vendor/etc/vintf/manifest/manifest_media_c2_V1_2_default.xml': blob_fixup()
+        .regex_replace('1.1', '1.2'),
     
     ('vendor/bin/mnld',
      'vendor/lib/libaalservice.so',

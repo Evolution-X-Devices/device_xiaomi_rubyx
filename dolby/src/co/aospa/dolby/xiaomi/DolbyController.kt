@@ -18,6 +18,7 @@ import androidx.preference.PreferenceManager
 import co.aospa.dolby.xiaomi.DolbyConstants.Companion.dlog
 import co.aospa.dolby.xiaomi.DolbyConstants.DsParam
 import co.aospa.dolby.xiaomi.R
+import kotlin.math.abs
 
 internal class DolbyController private constructor(
     private val context: Context
@@ -29,6 +30,13 @@ internal class DolbyController private constructor(
     private val volumeLevelerMin = context.resources.getInteger(R.integer.volume_leveler_min)
     private val volumeLevelerMax = context.resources.getInteger(R.integer.volume_leveler_max)
         .coerceAtLeast(volumeLevelerMin)
+<<<<<<< HEAD
+=======
+    private val stereoWideningSteps = context.resources.getIntArray(R.array.dolby_stereo_steps)
+    private val dialogueAmountSteps = context.resources.getIntArray(R.array.dolby_dialogue_steps)
+    private val dialogueActiveDefault = dialogueAmountSteps.firstOrNull { it > 0 } ?: 0
+    private val volumeLevelerDefault = context.resources.getInteger(R.integer.volume_leveler_default)
+>>>>>>> org/lineage-23.0
     private val paramSupportCache = mutableMapOf<DsParam, Boolean>()
 
     // Restore current profile on every media session
@@ -132,7 +140,7 @@ internal class DolbyController private constructor(
 
     private fun restoreSettings(profile: Int) {
         dlog(TAG, "restoreSettings(profile=$profile)")
-        val prefs = context.getSharedPreferences("profile_$profile", Context.MODE_PRIVATE)
+        val prefs = profilePrefs(profile)
         setPreset(
             prefs.getString(DolbyConstants.PREF_PRESET, getPreset(profile))!!,
             profile
@@ -152,6 +160,7 @@ internal class DolbyController private constructor(
             prefs.getBoolean(DolbyConstants.PREF_SPK_VIRTUALIZER, getSpeakerVirtEnabled(profile)),
             profile
         )
+<<<<<<< HEAD
         setStereoWideningAmount(
             prefs.getInt(
                 DolbyConstants.PREF_STEREO_WIDENING,
@@ -172,20 +181,53 @@ internal class DolbyController private constructor(
                 getDialogueEnhancerAmount(profile)
             )!!.toInt(),
             profile
+=======
+        val storedStereo = prefs.getInt(
+            DolbyConstants.PREF_STEREO_WIDENING,
+            getStereoWideningAmount(profile)
         )
+        setStereoWideningAmount(storedStereo, profile)
+        val dialogueEnabled = prefs.getBoolean(
+            DolbyConstants.PREF_DIALOGUE,
+            getDialogueEnhancerEnabled(profile)
+>>>>>>> org/lineage-23.0
+        )
+        setDialogueEnhancerEnabled(dialogueEnabled, profile)
+        val storedDialogueAmount = prefs.getInt(
+            DolbyConstants.PREF_DIALOGUE_AMOUNT,
+            defaultDialogueAmount(profile)
+        )
+        if (dialogueEnabled) {
+            setDialogueEnhancerAmount(storedDialogueAmount, profile)
+        } else {
+            dlog(TAG, "Dialogue enhancer disabled for profile=$profile, keeping stored amount=${clampDialogueAmount(storedDialogueAmount)}")
+        }
         setBassEnhancerEnabled(
             prefs.getBoolean(DolbyConstants.PREF_BASS, getBassEnhancerEnabled(profile)),
             profile
         )
-        setVolumeLevelerEnabled(
-            prefs.getBoolean(DolbyConstants.PREF_VOLUME, getVolumeLevelerEnabled(profile)),
-            profile
+        val volumeEnabled = prefs.getBoolean(
+            DolbyConstants.PREF_VOLUME,
+            getVolumeLevelerEnabled(profile)
         )
+<<<<<<< HEAD
         val storedVolumeAmount = prefs.getInt(
             DolbyConstants.PREF_VOLUME_AMOUNT,
             getVolumeLevelerAmount(profile)
         )!!.toInt()
         setVolumeLevelerAmount(clampVolumeLevelerAmount(storedVolumeAmount), profile)
+=======
+        setVolumeLevelerEnabled(volumeEnabled, profile)
+        val storedVolumeAmount = prefs.getInt(
+            DolbyConstants.PREF_VOLUME_AMOUNT,
+            volumeLevelerDefault
+        )
+        if (volumeEnabled) {
+            setVolumeLevelerAmount(storedVolumeAmount, profile)
+        } else {
+            dlog(TAG, "Volume leveler disabled for profile=$profile, keeping stored amount=${clampVolumeLevelerAmount(storedVolumeAmount)}")
+        }
+>>>>>>> org/lineage-23.0
         if (isVolumeModelerSupported()) {
             setVolumeModelerEnabled(
                 prefs.getBoolean(
@@ -336,6 +378,7 @@ internal class DolbyController private constructor(
     }
 
     fun getVolumeLevelerAmount(profile: Int = this.profile): Int {
+<<<<<<< HEAD
         val effectValue = clampVolumeLevelerAmount(
             dolbyEffect.getDapParameterInt(DsParam.VOLUME_LEVELER_AMOUNT, profile)
         )
@@ -419,8 +462,108 @@ internal class DolbyController private constructor(
     fun setStereoWideningAmount(value: Int, profile: Int = this.profile) {
         if (!stereoWideningSupported) return
         dlog(TAG, "setStereoWideningAmount: $value")
+=======
+        val prefs = profilePrefs(profile)
+        val storedValue = clampVolumeLevelerAmount(
+            prefs.getInt(DolbyConstants.PREF_VOLUME_AMOUNT, volumeLevelerDefault)
+        )
+        if (!getVolumeLevelerEnabled(profile)) {
+            dlog(TAG, "getVolumeLevelerAmount: leveler disabled, returning stored=$storedValue")
+            return storedValue
+        }
+
+        val effectValue = clampVolumeLevelerAmount(
+            dolbyEffect.getDapParameterInt(DsParam.VOLUME_LEVELER_AMOUNT, profile)
+        )
+
+        if (effectValue != storedValue) {
+            dlog(
+                TAG,
+                "getVolumeLevelerAmount: effect=$effectValue stored=$storedValue, reapplying stored value"
+            )
+            setVolumeLevelerAmount(storedValue, profile, force = true)
+            return storedValue
+        }
+
+        dlog(TAG, "getVolumeLevelerAmount (clamped): $effectValue")
+        return effectValue
+    }
+
+    fun setVolumeLevelerAmount(value: Int, profile: Int = this.profile, force: Boolean = false) {
+        val clampedValue = clampVolumeLevelerAmount(value)
+        if (clampedValue != value) {
+            dlog(TAG, "setVolumeLevelerAmount: requested=$value clamped=$clampedValue")
+        } else {
+            dlog(TAG, "setVolumeLevelerAmount: $value")
+        }
+        if (!force && !getVolumeLevelerEnabled(profile)) {
+            dlog(TAG, "setVolumeLevelerAmount: skipping write, leveler disabled for profile=$profile")
+            return
+        }
+>>>>>>> org/lineage-23.0
         checkEffect()
-        dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, value, profile)
+        dolbyEffect.setDapParameter(DsParam.VOLUME_LEVELER_AMOUNT, clampedValue, profile)
+    }
+
+    fun getVolumeModelerEnabled(profile: Int = this.profile): Boolean {
+        if (!isVolumeModelerSupported()) {
+            dlog(TAG, "getVolumeModelerEnabled: unsupported")
+            return false
+        }
+        return dolbyEffect.getDapParameterBool(DsParam.VOLUME_MODELER_ENABLE, profile).also {
+            dlog(TAG, "getVolumeModelerEnabled: $it")
+        }
+    }
+
+    fun setVolumeModelerEnabled(value: Boolean, profile: Int = this.profile) {
+        if (!isVolumeModelerSupported()) {
+            dlog(TAG, "setVolumeModelerEnabled: skipping, unsupported")
+            return
+        }
+        dlog(TAG, "setVolumeModelerEnabled: $value")
+        checkEffect()
+        dolbyEffect.setDapParameter(DsParam.VOLUME_MODELER_ENABLE, value, profile)
+    }
+
+    fun getAudioOptimizerEnabled(profile: Int = this.profile): Boolean {
+        if (!isAudioOptimizerSupported()) {
+            dlog(TAG, "getAudioOptimizerEnabled: unsupported")
+            return false
+        }
+        return dolbyEffect.getDapParameterBool(DsParam.AUDIO_OPTIMIZER_ENABLE, profile).also {
+            dlog(TAG, "getAudioOptimizerEnabled: $it")
+        }
+    }
+
+    fun setAudioOptimizerEnabled(value: Boolean, profile: Int = this.profile) {
+        if (!isAudioOptimizerSupported()) {
+            dlog(TAG, "setAudioOptimizerEnabled: skipping, unsupported")
+            return
+        }
+        dlog(TAG, "setAudioOptimizerEnabled: $value")
+        checkEffect()
+        dolbyEffect.setDapParameter(DsParam.AUDIO_OPTIMIZER_ENABLE, value, profile)
+    }
+
+    fun getStereoWideningAmount(profile: Int = this.profile): Int {
+        if (!stereoWideningSupported) return 0
+        val value = clampStereoWideningAmount(
+            dolbyEffect.getDapParameterInt(DsParam.STEREO_WIDENING_AMOUNT, profile)
+        )
+        dlog(TAG, "getStereoWideningAmount: $value")
+        return value
+    }
+
+    fun setStereoWideningAmount(value: Int, profile: Int = this.profile) {
+        if (!stereoWideningSupported) return
+        val clampedValue = clampStereoWideningAmount(value)
+        if (clampedValue != value) {
+            dlog(TAG, "setStereoWideningAmount: requested=$value clamped=$clampedValue")
+        } else {
+            dlog(TAG, "setStereoWideningAmount: $value")
+        }
+        checkEffect()
+        dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, clampedValue, profile)
     }
 
     fun getDialogueEnhancerEnabled(profile: Int = this.profile) =
@@ -434,15 +577,67 @@ internal class DolbyController private constructor(
         dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_ENABLE, value, profile)
     }
 
+<<<<<<< HEAD
+    fun getDialogueEnhancerEnabled(profile: Int = this.profile) =
+        dolbyEffect.getDapParameterBool(DsParam.DIALOGUE_ENHANCER_ENABLE, profile).also {
+            dlog(TAG, "getDialogueEnhancerEnabled: $it")
+        }
+
+    fun setDialogueEnhancerEnabled(value: Boolean, profile: Int = this.profile) {
+        dlog(TAG, "setDialogueEnhancerEnabled: $value")
+        checkEffect()
+        dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_ENABLE, value, profile)
+=======
+    fun getDialogueEnhancerAmount(profile: Int = this.profile): Int {
+        val storedValue = clampDialogueAmount(
+            profilePrefs(profile).getInt(
+                DolbyConstants.PREF_DIALOGUE_AMOUNT,
+                defaultDialogueAmount(profile)
+            )
+        )
+        if (!getDialogueEnhancerEnabled(profile)) {
+            dlog(TAG, "getDialogueEnhancerAmount: enhancer disabled, returning stored=$storedValue")
+            return storedValue
+        }
+        val effectValue = clampDialogueAmount(
+            dolbyEffect.getDapParameterInt(DsParam.DIALOGUE_ENHANCER_AMOUNT, profile)
+        )
+        if (effectValue != storedValue) {
+            dlog(
+                TAG,
+                "getDialogueEnhancerAmount: effect=$effectValue stored=$storedValue, syncing"
+            )
+            checkEffect()
+            applyDialogueEnhancerAmount(storedValue, profile)
+            return storedValue
+        }
+        dlog(TAG, "getDialogueEnhancerAmount: $effectValue")
+        return effectValue
+>>>>>>> org/lineage-23.0
+    }
+
     fun getDialogueEnhancerAmount(profile: Int = this.profile) =
         dolbyEffect.getDapParameterInt(DsParam.DIALOGUE_ENHANCER_AMOUNT, profile).also {
             dlog(TAG, "getDialogueEnhancerAmount: $it")
         }
 
     fun setDialogueEnhancerAmount(value: Int, profile: Int = this.profile) {
-        dlog(TAG, "setDialogueEnhancerAmount: $value")
+        val clampedValue = clampDialogueAmount(value)
+        if (!getDialogueEnhancerEnabled(profile)) {
+            dlog(TAG, "setDialogueEnhancerAmount: enhancer disabled, skipping write for profile=$profile")
+            return
+        }
+        if (clampedValue != value) {
+            dlog(TAG, "setDialogueEnhancerAmount: requested=$value clamped=$clampedValue")
+        } else {
+            dlog(TAG, "setDialogueEnhancerAmount: $value")
+        }
         checkEffect()
+<<<<<<< HEAD
         dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_AMOUNT, value, profile)
+=======
+        applyDialogueEnhancerAmount(clampedValue, profile)
+>>>>>>> org/lineage-23.0
     }
 
     fun getIeqPreset(profile: Int = this.profile) =
@@ -473,6 +668,36 @@ internal class DolbyController private constructor(
     private fun clampVolumeLevelerAmount(value: Int) =
         value.coerceIn(volumeLevelerMin, volumeLevelerMax)
 
+<<<<<<< HEAD
+=======
+    private fun clampDialogueAmount(value: Int) =
+        dialogueAmountSteps.closest(value)
+
+    private fun clampStereoWideningAmount(value: Int) =
+        stereoWideningSteps.closest(value)
+
+    private fun profilePrefs(profile: Int) =
+        context.getSharedPreferences("profile_$profile", Context.MODE_PRIVATE)
+
+    private fun defaultDialogueAmount(profile: Int): Int {
+        val effectValue = runCatching {
+            clampDialogueAmount(
+                dolbyEffect.getDapParameterInt(DsParam.DIALOGUE_ENHANCER_AMOUNT, profile)
+            )
+        }.getOrNull()
+        return effectValue?.takeIf { it != 0 } ?: dialogueActiveDefault
+    }
+
+    private fun applyDialogueEnhancerAmount(value: Int, profile: Int) {
+        dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_AMOUNT, value, profile)
+    }
+
+    private fun IntArray.closest(value: Int): Int {
+        if (isEmpty()) return value
+        return minByOrNull { abs(it - value) } ?: value
+    }
+
+>>>>>>> org/lineage-23.0
     private fun isParamSupported(param: DsParam): Boolean {
         return paramSupportCache.getOrPut(param) {
             try {
