@@ -76,31 +76,14 @@ ro.hardware.consumerir=common
 debug.mediatek.appgamepq_compress=1
 debug.sf.auto_latch_unsignaled=false
 debug.sf.disable_client_composition_cache=1
-debug.sf.early.app.duration=20000000
-debug.sf.early.sf.duration=27600000
-debug.sf.earlyGl.app.duration=20000000
-debug.sf.earlyGl.sf.duration=27600000
 debug.sf.enable_gl_backpressure=0
 debug.sf.enable_hwc_vds=0
 debug.sf.enable_transaction_tracing=false
 debug.sf.frame_rate_multiple_threshold=120
-debug.sf.high_fps.early.app.duration=10000000
-debug.sf.high_fps.early.sf.duration=13800000
-debug.sf.high_fps.earlyGl.app.duration=10000000
-debug.sf.high_fps.earlyGl.sf.duration=13800000
-debug.sf.high_fps.hwc.min.duration=8500000
-debug.sf.high_fps.late.app.duration=10000000
-debug.sf.high_fps.late.sf.duration=13800000
-debug.sf.hwc.min.duration=23000000
-debug.sf.late.app.duration=20000000
-debug.sf.late.sf.duration=27600000
 debug.sf.latch_unsignaled=true
 debug.sf.predict_hwc_composition_strategy=0
 debug.sf.treat_170m_as_sRGB=1
-<<<<<<< HEAD
-=======
 debug.sf.use_phase_offsets_as_durations=1
->>>>>>> org/lineage-23.0
 persist.vendor.sys.pq.disp.mi.soft.brightness=1
 ro.hardware.egl=meow
 ro.hardware.hwcomposer=mtk_common
@@ -270,7 +253,6 @@ ro.vendor.mtk_world_phone_policy=0
 ro.vendor.num_md_protocol=2
 ro.vendor.sim_me_lock_mode=3
 telephony.lteOnCdmaDevice=1
-<<<<<<< HEAD
 import /vendor/etc/rsc/${ro.boot.hwc}/ro.prop
 
 # IMS
@@ -292,8 +274,6 @@ ro.lmk.use_minfree_levels=false
 ro.lmk.use_new_strategy=true
 ro.lmk.thrashing_limit_decay=50
 ro.lmk.downgrade_pressure=30
-=======
->>>>>>> org/lineage-23.0
 
 # Sensors
 ro.vendor.mtk.sensor.support=yes
